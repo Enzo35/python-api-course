@@ -1,26 +1,37 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional, List
 
 from .. import models, schemas, utils, oauth2
 from ..database import engine, get_db
+
 
 router = APIRouter(
     prefix="/alchemy",
     tags=['Posts']
 )
 
+
 # === API WITH SQLALCHEMY ===
 
-@router.get("/get")
+@router.get("/get", response_model=List[schemas.PostOut])
 def al_get_posts(db: Session = Depends(get_db), limit: int = 10, skip: Optional[int] = 0, search: Optional[str] = ""):
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return {"data": posts}
+
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+
+    #posts = list(map(lambda x: x._mapping, posts))
+    
+    return posts
 
 @router.get("/get/{id}")
 def al_get_one_post(id: int,db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    return {"data": post}
+
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id)
+
+    post = list(map(lambda x: x._mapping, post))
+
+    return post
 
 @router.post("/post", status_code=status.HTTP_201_CREATED, response_model= schemas.PostResponse)
 def al_post_posts(payload: schemas.Post, db: Session = Depends(get_db), curr_user: int = Depends(oauth2.get_current_user)):
