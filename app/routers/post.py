@@ -19,8 +19,6 @@ router = APIRouter(
 def al_get_posts(db: Session = Depends(get_db), limit: int = 10, skip: Optional[int] = 0, search: Optional[str] = ""):
 
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-
-    #posts = list(map(lambda x: x._mapping, posts))
     
     return posts
 

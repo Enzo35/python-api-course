@@ -29,3 +29,9 @@ class Vote(Base):
     __tablename__ = "votes"
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
+
+class AlembicTest(Base):
+    __tablename__ = "alembic_test"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    test = Column(Integer,nullable=True)

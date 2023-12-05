@@ -5,4 +5,4 @@ The course can be found at freeCodeCamp youtube channel: https://www.youtube.com
 
 The course explores the development, tests, deployement and version control of the API
 
-The tecnologys used are FastApi, PostGreSQL, SQLAlchemy, Psycopg
+The tecnologys used are FastApi, PostGreSQL, SQLAlchemy, Psycopg, Alembic
