@@ -1,5 +1,6 @@
+import pytest
 from app import schemas
-from .database import session, client
+
 
 def test_root(client):
     res = client.get("/")
@@ -12,3 +13,18 @@ def test_create_user(client):
     new_user = schemas.UserOut(**res.json())
     assert res.json().get("email") == "hello@gmail.com"
     assert res.status_code == 201
+
+def test_login_user(client, test_user):
+    res = client.post("/login", data={"username": 'testUser@gmail.com', "password": 'testUser123'})
+    assert res.status_code == 200
+
+@pytest.mark.parametrize("email, password, status_code", [
+    ('wrong@gmail.com', 'testUser123', 403),
+    ('testUser@gmail.com', 'wrongpass', 403),
+    ('wrong@gmail.com', 'wrongpass', 403),
+    (None, 'testUser123', 422),
+    ('testUser@gmail.com', None, 422)
+])
+def test_incorrect_login(client, test_user, email, password, status_code):
+    res = client.post("/login", data={"username": email, "password": password})
+    assert res.status_code == status_code
