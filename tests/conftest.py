@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 from app.database import Base, get_db
 from app.oauth2 import create_access_token
+from app import models
 
 SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
 
@@ -64,3 +65,27 @@ def authorized_client(client, token):
     }
 
     return client
+
+@pytest.fixture
+def test_posts(test_user, session):
+    posts_data = [{
+        "title": "Título do Post",
+        "content": "Conteúdo do Post",
+        "owner_id": test_user['id']
+    }, {
+        "title": "Título do Post 2",
+        "content": "Conteúdo do Post 2",
+        "owner_id": test_user['id']
+    }]
+
+    def create_model_post(post):
+        return models.Post(**post)
+    
+    posts_map = map(create_model_post, posts_data)
+    posts = list(posts_map)
+
+    session.add_all(posts)
+    session.commit()
+
+    posts = session.query(models.Post).all()
+    return posts
